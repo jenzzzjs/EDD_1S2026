@@ -85,7 +85,7 @@ perl hola.pl
 y listo, podemos observar el mensaje generado con perl, en este caso es un simple hola mundo
 
 ```
-➜  bin git:(main) ✗ perl hola.pl
+➜  Semana 1 git:(main) perl hola.pl                       
 Hola mundo desde Perl
-➜  bin git:(main) ✗ 
+➜  Semana 1 git:(main) 
 ```
