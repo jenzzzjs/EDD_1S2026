@@ -1,0 +1,22 @@
+# Ignorar Reportes dentro de ListasEnlazadas
+Semana 2/ListasEnlazadas/Reportes/*
+
+
+!Semana 2/ListasEnlazadas/Reportes/.gitkeep
+
+
+**/Reportes/*
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de imagen y Graphviz
+*.png
+*.dot
+*.pdf
+*.svg
+
+# Archivos temporales
+*.tmp
+*.bak
