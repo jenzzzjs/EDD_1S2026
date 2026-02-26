@@ -2,11 +2,8 @@
 use strict;
 use warnings;
 
-# ==============================================
-# ESTRUCTURAS DE DATOS
-# ==============================================
 
-# 1. NODO DE CANCIÓN (para la cola)
+
 {
     package NodoCancion;
     sub new {
@@ -21,7 +18,6 @@ use warnings;
     }
 }
 
-# 2. COLA DE CANCIONES (para cada artista)
 {
     package ColaCanciones;
     sub new {
@@ -75,7 +71,6 @@ use warnings;
     }
 }
 
-# 3. NODO DE ARTISTA (para la lista doblemente enlazada)
 {
     package NodoArtista;
     sub new {
@@ -106,7 +101,6 @@ use warnings;
     }
 }
 
-# 4. LISTA DOBLEMENTE ENLAZADA DE ARTISTAS
 {
     package ListaDoblementeEnlazada;
     sub new {
@@ -220,19 +214,17 @@ use warnings;
     $dot .= "    ranksep=0.5;\n";
     $dot .= "    nodesep=0.4;\n\n";
     
-    # Estilos globales
+    
     $dot .= "    // ESTILOS GLOBALES\n";
     $dot .= "    graph [splines=ortho];\n";
     $dot .= "    edge [arrowsize=0.8, color=black, fontcolor=black];\n\n";
     
-    # Forzar los artistas en el mismo nivel (horizontal)
     $dot .= "    {\n";
     $dot .= "        rank=same;\n";
     
     my @artistas = $self->obtener_artistas();
     my $contador_a = 0;
     
-    # Crear nodos para todos los artistas primero (en el mismo nivel)
     foreach my $artista (@artistas) {
         $dot .= "        artista$contador_a [label=\"" . $artista->{nombre} . 
                 "\", shape=box, style=\"filled,rounded\", fillcolor=\"black\", " .
@@ -242,7 +234,7 @@ use warnings;
     }
     $dot .= "    }\n\n";
     
-    # Conexiones entre artistas (lista doblemente enlazada) - TODAS NEGRAS
+
     $dot .= "    // CONEXIONES ENTRE ARTISTAS\n";
     for (my $i = 0; $i < $contador_a; $i++) {
         if ($i < $contador_a - 1) {
@@ -257,26 +249,22 @@ use warnings;
     
     $dot .= "\n";
     
-    # Ahora procesar las canciones de cada artista
     $contador_a = 0;
     foreach my $artista (@artistas) {
         $dot .= "    // CANCIONES DE: " . $artista->{nombre} . "\n";
-        
-        # Canciones de este artista
         my @canciones = $artista->obtener_canciones();
         my $contador_c = 0;
         
         if (@canciones) {
-            # Crear subgrafo invisible para mantener alineación
+        
             $dot .= "    subgraph cluster_artista$contador_a {\n";
             $dot .= "        label=\"\";\n";
             $dot .= "        style=invis;\n";
             $dot .= "        ranksep=0.3;\n";
             
-            # Crear nodos de canciones como cuadrados con degradado fijo
+         
             foreach my $cancion (@canciones) {
-                # Degradado fijo azul-negro para todas las canciones
-                # Base azul oscuro con toque negro
+            
                 my $r = 30;
                 my $g = 60;
                 my $b = 160;
@@ -294,7 +282,7 @@ use warnings;
             
             $dot .= "    }\n";
             
-            # Conectar canciones en cola (FIFO) - verticalmente, TODAS NEGRAS
+           # conectamos las canciones entre si
             for (my $i = 0; $i < $contador_c; $i++) {
                 if ($i < $contador_c - 1) {
                     $dot .= "    cancion${contador_a}_${i} -> cancion${contador_a}_" . ($i + 1) . 
@@ -303,12 +291,12 @@ use warnings;
                 }
             }
             
-            # Conectar artista a su primera canción - NEGRO
+            # conectamos artista con la primera cancion
             $dot .= "    artista$contador_a -> cancion${contador_a}_0 " .
                     "[color=black, dir=forward, minlen=2.5, penwidth=2, " .
                     "arrowhead=vee];\n";
             
-            # Agregar un nodo invisible para mejorar el espaciado
+           
             if ($contador_c > 0) {
                 $dot .= "    { rank=same; cancion${contador_a}_0 }\n";
             }
@@ -324,27 +312,23 @@ use warnings;
         $contador_a++;
     }
     
-    # Agregar un título invisible para forzar mejor espaciado
-    $dot .= "    // TÍTULO INVISIBLE PARA MEJORAR ESPACIADO\n";
+
+    $dot .= "    // TITULO\n";
     $dot .= "    titulo_invisible [label=\"\", shape=plaintext, width=0, height=0];\n";
     
     $dot .= "}\n";
     return $dot;
 }
 }
-# ==============================================
-# PROGRAMA PRINCIPAL
-# ==============================================
 
-# Variable global
 my $lista_artistas = ListaDoblementeEnlazada->new();
 
-# Función para limpiar pantalla
+
 sub limpiar_pantalla {
     system('clear') == 0 || system('cls') == 0 || print "\n" x 50;
 }
 
-# Función para mostrar el menú
+
 sub mostrar_menu {
     print "\n" . "=" x 50 . "\n";
     print "    SISTEMA DE GESTIÓN DE MÚSICA\n";
@@ -358,7 +342,7 @@ sub mostrar_menu {
     print "Seleccione una opción: ";
 }
 
-# Función para ingresar artista
+
 sub ingresar_artista {
     limpiar_pantalla();
     print "\n" . "-" x 50 . "\n";
@@ -387,7 +371,7 @@ sub ingresar_artista {
     <STDIN>;
 }
 
-# Función para ingresar canción
+
 sub ingresar_cancion {
     limpiar_pantalla();
     print "\n" . "-" x 50 . "\n";
@@ -421,14 +405,14 @@ sub ingresar_cancion {
     my $anio = <STDIN>;
     chomp($anio);
     
-    if ($anio !~ /^\d{4}$/ || $anio < 1900 || $anio > 2024) {
+    if ($anio !~ /^\d{4}$/ || $anio < 1800 || $anio > 2050) {
         print "\n✗ Error: Año inválido. Debe ser un número de 4 dígitos entre 1900 y 2024.\n";
         print "Presione Enter para continuar...";
         <STDIN>;
         return;
     }
     
-    # Agregar la canción al artista específico
+  
     if ($lista_artistas->agregar_cancion_a_artista($artista, $cancion, $anio)) {
         print "\n✓ Canción '$cancion' agregada exitosamente al artista '$artista'!\n";
     } else {
@@ -439,14 +423,14 @@ sub ingresar_cancion {
     <STDIN>;
 }
 
-# Función para generar reporte gráfico
+
 sub generar_reporte {
     limpiar_pantalla();
     print "\n" . "-" x 50 . "\n";
     print "   GENERAR REPORTE GRÁFICO\n";
     print "-" x 50 . "\n";
     
-    # Verificar si hay datos
+   
     if ($lista_artistas->tamanio() == 0) {
         print "\n✗ Error: No hay datos para generar el reporte.\n";
         print "Agregue artistas primero.\n";
@@ -455,13 +439,13 @@ sub generar_reporte {
         return;
     }
     
-    # Generar archivo DOT
+
     my $dot_file = "reporte_musica.dot";
     my $png_file = "reporte_musica.png";
     
     open(my $fh, '>', $dot_file) or die "No se pudo crear el archivo DOT: $!";
     
-    # Generar el DOT completo
+   
     my $dot_content = $lista_artistas->generar_dot_completo();
     print $fh $dot_content;
     
@@ -481,7 +465,7 @@ sub generar_reporte {
     chomp($respuesta);
     
     if ($respuesta =~ /^s/i) {
-        # Verificar si Graphviz está instalado
+        
         my $graphviz_check = `which dot 2>/dev/null`;
         
         if (!$graphviz_check) {
@@ -495,7 +479,7 @@ sub generar_reporte {
             if (-e $png_file) {
                 print "\n✓ Imagen generada exitosamente: $png_file\n";
                 
-                # Mostrar estadísticas
+               
                
                 print "  ├─ Artistas registrados: " . $lista_artistas->tamanio() . "\n";
                 print "  └─ Canciones totales: " . $lista_artistas->contar_canciones_totales() . "\n";
@@ -520,7 +504,7 @@ sub generar_reporte {
     <STDIN>;
 }
 
-# Función para mostrar datos actuales
+
 sub mostrar_datos {
     limpiar_pantalla();
     print "\n" . "-" x 50 . "\n";
@@ -535,7 +519,7 @@ sub mostrar_datos {
         foreach my $artista (@artistas) {
             print "┌─ " . $artista->{nombre} . "\n";
             
-            # Mostrar canciones del artista
+            
             my @canciones = $artista->obtener_canciones();
             if (@canciones) {
                 print "│  🎵 Canciones (" . scalar(@canciones) . "):\n";
@@ -562,7 +546,7 @@ sub mostrar_datos {
 
 
 
-# Programa principal
+
 sub main {
     my $opcion;
     
@@ -597,5 +581,5 @@ sub main {
     }
 }
 
-# Ejecutar el programa principal
+
 main();

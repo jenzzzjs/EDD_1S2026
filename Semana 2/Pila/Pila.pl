@@ -183,9 +183,9 @@ sub graficar_graphviz {
         if ($contador == 0) {
             $color_fondo = '#f80000';     # Rojo claro para el tope
         } elsif ($contador == $total_libros - 1) {
-            $color_fondo = '#ccffcc';     # Verde claro para la base
+            $color_fondo = '#0dff092c';     # Verde claro para la base
         } else {
-            $color_fondo = '#e6f3ff';     # Azul claro para los intermedios
+            $color_fondo = '#ffc505';     # Azul claro para los intermedios
         }
         
         # Añadir nodo al gráfico
@@ -232,7 +232,7 @@ sub graficar_graphviz {
         print "  • $nombre_png\n";
         print "  • $nombre_dot\n";
         
-        # Abrir automaticamente la imagen
+        # Abrir automaticamente la imagen 
         abrir_imagen($ruta_png);
     };
     
@@ -325,7 +325,7 @@ sub main {
             
         } elsif ($opcion == 4) {
             my $tamano = $pila->obtener_tamano();
-            print "\n📊 Tamaño actual de la pila: $tamano libros\n";
+            print "\n Tamaño actual de la pila: $tamano libros\n";
             
         } elsif ($opcion == 5) {
             print "\n--- GENERANDO GRÁFICO CON GRAPHVIZ ---\n";
