@@ -3,61 +3,69 @@ use strict;
 use warnings;
 use feature 'say';
 
-# Clase Nodo para la matriz dispersa
+# definimos la clase nodo 
 package Node {
     sub new {
-        my ($class, $row, $col, $medicamento, $precio) = @_;
+        my ($class, $row, $col, $medicamento, $precio) = @_; # manejamos los distintos atributos que tendremos
         my $self = {
-            row => $row,
-            col => $col,
-            medicamento => $medicamento,
-            precio => $precio,
-            up => undef,
-            down => undef,
-            left => undef,
-            right => undef
+        # self es una referencia a este hash y va a manejar todos los objetos que tengamos    
+            row => $row, # guardamos el  proveedor aca
+            col => $col, # guardamos el codigo del medicamento
+            medicamento => $medicamento, # guardamos el nombre del medicamento 
+            precio => $precio,# uardamos el precio
+            up => undef, #va a apuntar al nodo de arriba en la misma columna
+            down => undef, #va a apuntar al nodo de abajo
+            left => undef, #apunta hacia el lado izquierdo de la misma fila
+            right => undef #apunta hacia el nodo derecho de la misma fila
         };
-        bless $self, $class;
+        bless $self, $class; #convierte todo el hash a un bojeto de la clase nodo   
         return $self;
     }
 
-    sub get_row { $_[0]->{row} }
-    sub get_col { $_[0]->{col} }
-    sub get_medicamento { $_[0]->{medicamento} }
+    sub get_row { $_[0]->{row} } # este metodo nos devuelve el proveedor 
+    sub get_row { $_[0]->{row} } # nos devuelve el codigo del medicamento
+    sub get_col { $_[0]->{col} }  # Nos devuelve el nombre del medicamento
+    sub get_medicamento { $_[0]->{medicamento} }  # Nos devuelve el precio
     sub get_precio { $_[0]->{precio} }
     
-    sub set_up { $_[0]->{up} = $_[1] }
-    sub set_down { $_[0]->{down} = $_[1] }
-    sub set_left { $_[0]->{left} = $_[1] }
-    sub set_right { $_[0]->{right} = $_[1] }
+    sub set_up { $_[0]->{up} = $_[1] }  # Establece a que nodo apunta hacia arriba
+    sub set_down { $_[0]->{down} = $_[1] } # Establece a que nodo apunta abajo
+    sub set_left { $_[0]->{left} = $_[1] }# Establece a que nodo apunta izquierda
+    sub set_right { $_[0]->{right} = $_[1] } # Establece a que nodo apunta derecha
     
-    sub get_up { $_[0]->{up} }
+    sub get_up { $_[0]->{up} }  # Devuelve el nodo que esta arriba
     sub get_down { $_[0]->{down} }
     sub get_left { $_[0]->{left} }
     sub get_right { $_[0]->{right} }
 }
 
-# Clase Matriz Dispersa
+# clase Matriz Dispersa
+# esta es la clase principal, la que maneja toda la matriz
+
 package MatrizDispersaMedicamentos {
     sub new {
+     # El constructor de la matriz
         my ($class) = @_;
         my $self = {
             head => Node->new("HEAD", "HEAD", "", 0),
-            proveedores => {},  # Hash para búsqueda rápida de proveedores
-            medicamentos => {}   # Hash para búsqueda rápida de medicamentos
+            # El head es un nodo especial, el cual es pues el nodo de la esquina superior izquierda
+            # es el punto de partida para proveedor y para codigo
+            
+            proveedores => {},  # un hash para la busqueda de proveedores
+            medicamentos => {}   # hassh para la busqueda de medicamentos
         };
         bless $self, $class;
         return $self;
     }
 
-    # Método para reemplazar espacios por guiones bajos (para Graphviz)
+    # metotodo para reemplazar espacios por guiones bajos 
     sub reemplazar_espacios {
         my ($self, $texto) = @_;
         $texto =~ s/ /_/g;
         return $texto;
     }
 
-    # Buscar encabezado de proveedor (fila)
+    # metodo para buscar encabezado de proveedor 
     sub buscar_proveedor_head {
         my ($self, $proveedor) = @_;
         my $temp = $self->{head};
@@ -69,7 +77,7 @@ package MatrizDispersaMedicamentos {
         return undef;
     }
 
-    # Buscar encabezado de medicamento (columna)
+    # metodo para buscar encabezado de medicamento 
     sub buscar_medicamento_head {
         my ($self, $medicamento) = @_;
         my $temp = $self->{head};
@@ -81,26 +89,26 @@ package MatrizDispersaMedicamentos {
         return undef;
     }
 
-    # Crear encabezado de proveedor
+    # metodo para crear encabezado de proveedor
     sub crear_proveedor_head {
         my ($self, $proveedor) = @_;
         
-        # Verificar si ya existe
+        # verificamos si ya existe el proveedor
         my $existe = $self->buscar_proveedor_head($proveedor);
         return $existe if $existe;
         
-        # Crear nuevo nodo encabezado
+        # creamos un nuevo nodo encabezado
         my $nuevo_nodo = Node->new($proveedor, "", "", 0);
         $self->{proveedores}->{$proveedor} = 1;
         
         my $temp = $self->{head};
         
-        # Encontrar posición correcta (orden alfabético)
+        # encontramos la posicion correcta para colocar el proveedor por orden alfabetico
         while ($temp->get_down() && $temp->get_down()->get_row() lt $proveedor) {
             $temp = $temp->get_down();
         }
         
-        # Insertar en la posición correcta
+        # insertamos en la posicion correcta
         $nuevo_nodo->set_down($temp->get_down());
         $temp->set_down($nuevo_nodo);
         $nuevo_nodo->set_up($temp);
@@ -126,12 +134,12 @@ package MatrizDispersaMedicamentos {
         
         my $temp = $self->{head};
         
-        # Encontrar posición correcta (orden alfabético)
+        # Encontrar posicion correcta en orden alfabetico
         while ($temp->get_right() && $temp->get_right()->get_col() lt $medicamento) {
             $temp = $temp->get_right();
         }
         
-        # Insertar en la posición correcta
+        # Insertar en la posicion correcta
         $nuevo_nodo->set_right($temp->get_right());
         $temp->set_right($nuevo_nodo);
         $nuevo_nodo->set_left($temp);
@@ -143,11 +151,11 @@ package MatrizDispersaMedicamentos {
         return $nuevo_nodo;
     }
 
-    # Insertar medicamento en la matriz
+    # metodo para insertar medicamento en la matriz
     sub insertar_medicamento {
         my ($self, $proveedor, $codigo_medicamento, $nombre_medicamento, $precio) = @_;
         
-        # Crear encabezados si no existen
+        # creamos los encabezados encabezados si no existen
         $self->crear_proveedor_head($proveedor);
         $self->crear_medicamento_head($codigo_medicamento);
         
@@ -158,7 +166,7 @@ package MatrizDispersaMedicamentos {
         # Crear nuevo nodo
         my $nuevo_nodo = Node->new($proveedor, $codigo_medicamento, $nombre_medicamento, $precio);
         
-        # Insertar en la fila (proveedor)
+        # Insertar en la fila de proveedor
         my $temp_fila = $proveedor_head;
         while ($temp_fila->get_right() && $temp_fila->get_right()->get_col() lt $codigo_medicamento) {
             $temp_fila = $temp_fila->get_right();
@@ -172,7 +180,7 @@ package MatrizDispersaMedicamentos {
             $nuevo_nodo->get_right()->set_left($nuevo_nodo);
         }
         
-        # Insertar en la columna (medicamento)
+        # Insertar en la columna de medicamento
         my $temp_col = $medicamento_head;
         while ($temp_col->get_down() && $temp_col->get_down()->get_row() lt $proveedor) {
             $temp_col = $temp_col->get_down();
@@ -189,7 +197,7 @@ package MatrizDispersaMedicamentos {
         return $nuevo_nodo;
     }
 
-    # Mostrar matriz completa
+    # metodo para mostrar la matriz completa
     sub mostrar_matriz_completa {
         my ($self) = @_;
         
@@ -197,15 +205,15 @@ package MatrizDispersaMedicamentos {
         say "     MATRIZ DISPERSA DE MEDICAMENTOS - RESUMEN";
         say "=" x 60;
         
-        # Contar proveedores
+        # contamos la cantidad de  proveedores
         my $num_proveedores = scalar(keys %{$self->{proveedores}});
         say "Total de proveedores: $num_proveedores";
         
-        # Contar medicamentos
+        # contamos la cantidad de  medicamentos
         my $num_medicamentos = scalar(keys %{$self->{medicamentos}});
         say "Total de códigos de medicamento: $num_medicamentos";
         
-        # Mostrar lista de proveedores
+        # mostramos el listadode proveedores
         say "\nLista de proveedores:";
         my $temp = $self->{head}->get_down();
         while ($temp) {
@@ -213,7 +221,7 @@ package MatrizDispersaMedicamentos {
             $temp = $temp->get_down();
         }
         
-        # Mostrar lista de medicamentos
+        # mostramos el listadode medicamentos
         say "\nLista de códigos de medicamento:";
         $temp = $self->{head}->get_right();
         while ($temp) {
@@ -224,7 +232,7 @@ package MatrizDispersaMedicamentos {
         say "=" x 60;
     }
 
-    # Generar archivo DOT para Graphviz con estructura de matriz tradicional
+    # metodo para generar el grafico de la matriz dispersa
     sub generar_graphviz {
         my ($self) = @_;
         my $nombre_archivo = "matriz_medicamentos.dot";
@@ -232,23 +240,28 @@ package MatrizDispersaMedicamentos {
         open my $fh, '>', $nombre_archivo or die "No se pudo crear el archivo: $!";
         
         print $fh "digraph MatrizDispersaMedicamentos {\n";
-        print $fh "    rankdir=TB;\n";
+        print $fh "    rankdir=TB;\n"; # el grafo se organiza de arriba hacia abajo
         print $fh "    node [shape=box];\n";
         print $fh "    edge [dir=both];\n";
         print $fh "    splines=ortho;\n";
         print $fh "    ranksep=0.5;\n";
         print $fh "    nodesep=0.5;\n\n";
         
-        # ===== ENCABEZADOS DE COLUMNAS (MEDICAMENTOS) =====
-        print $fh "    // ===== ENCABEZADOS DE COLUMNAS (CÓDIGOS DE MEDICAMENTO) =====\n";
+        
+        print $fh "    // ===== ENCABEZADOS DE COLUMNAS =====\n";
+
+        #Este hash va a guardar la relacion entre el nombre del medicamento y el ID que le asignamos en el grafico
         my $col_temp = $self->{head}->get_right();
-        my %col_nodes = ();
+        my %col_nodes = (); 
         my $col_count = 0;
         
-        # Crear nodos para encabezados de columnas
+        
+        # creamos los nodos para los encabezados de las columnas
         while ($col_temp) {
             my $col_id = "COL_" . $self->reemplazar_espacios($col_temp->get_col());
+             # Creamos un ID único para cada columna
             $col_nodes{$col_temp->get_col()} = $col_id;
+             # Guardamos en el hash
             
             print $fh "    $col_id [label=\"" . $col_temp->get_col() . "\", width=1.8, style=filled, fillcolor=lightblue];\n";
             $col_count++;
@@ -256,8 +269,8 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== ENCABEZADOS DE FILAS (PROVEEDORES) =====
-        print $fh "    // ===== ENCABEZADOS DE FILAS (PROVEEDORES) =====\n";
+        # encabezados para las filas
+        print $fh "    // ===== ENCABEZADOS DE FILAS =====\n";
         my $row_temp = $self->{head}->get_down();
         my %row_nodes = ();
         my $row_count = 0;
@@ -273,20 +286,23 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== NODOS DE DATOS (VALORES) =====
-        print $fh "    // ===== NODOS DE DATOS (MEDICAMENTOS Y PRECIOS) =====\n";
+        # nodos de los datos
+        print $fh "    // ===== NODOS DE DATOS =====\n";
         $row_temp = $self->{head}->get_down();
-        my %data_positions = ();  # Para rastrear posición de cada nodo de datos
+        my %data_positions = ();  # Para rastrear posicion de cada nodo de datos
+        # este hash va a ser muy importante, ya que va a guardar para cada proveedor y cada medicamento,
+        # el ID del nodo de datos correspondiente
         my $data_count = 0;
         
-        # Primera pasada: crear todos los nodos de datos
+        # la primera pasada va a crear todos los nodos de datos
         while ($row_temp) {
             my $data_temp = $row_temp->get_right();
             
             while ($data_temp) {
                 $data_count++;
                 my $data_id = "DATA_" . $data_count;
-                # Guardar posición para referencia posterior
+                # Asignamos un ID único como "DATA_1", "DATA_2", y asi sucecivamente 
+                # Guardamos la posicion para referencia posterior
                 $data_positions{$data_temp->get_row()}{$data_temp->get_col()} = $data_id;
                 
                 my $label = $data_temp->get_medicamento() . "\\n" . "Q" . sprintf("%.2f", $data_temp->get_precio());
@@ -299,13 +315,12 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== ESTRUCTURA DE MATRIZ TRADICIONAL =====
+        
         print $fh "    // ===== ESTRUCTURA DE MATRIZ TRADICIONAL =====\n";
         
-        # Nodo vacío en la esquina superior izquierda
+        # Nodo vacio en la esquina superior izquierda
         print $fh "    ESQUINA [label=\"\", shape=none, width=0.1, height=0.1];\n\n";
         
-        # ===== FILA SUPERIOR: ENCABEZADOS DE COLUMNAS =====
         print $fh "    // ===== FILA SUPERIOR: ENCABEZADOS DE COLUMNAS =====\n";
         print $fh "    { rank=same; ESQUINA; ";
         $col_temp = $self->{head}->get_right();
@@ -316,7 +331,7 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "}\n\n";
         
-        # ===== CONEXIONES HORIZONTALES EN LA FILA SUPERIOR =====
+        # las conexiones horizontales en la fila superior
         print $fh "    // ===== CONEXIONES HORIZONTALES EN LA FILA SUPERIOR =====\n";
         $col_temp = $self->{head}->get_right();
         my $prev_col_id = "ESQUINA";
@@ -329,8 +344,8 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== FILAS DE DATOS (UNA POR PROVEEDOR) =====
-        print $fh "    // ===== FILAS DE DATOS (UNA POR PROVEEDOR) =====\n";
+        # filas de los datos
+        print $fh "    // ===== FILAS DE DATOS  =====\n";
         $row_temp = $self->{head}->get_down();
         my $fila_num = 0;
         
@@ -339,7 +354,7 @@ package MatrizDispersaMedicamentos {
             my $row_id = $row_nodes{$row_temp->get_row()};
             my $data_temp = $row_temp->get_right();
             
-            # Crear una fila para cada proveedor
+            # creamos una fila para cada proveedor
             print $fh "    // Fila: " . $row_temp->get_row() . "\n";
             print $fh "    { rank=same; $row_id; ";
             
@@ -354,7 +369,7 @@ package MatrizDispersaMedicamentos {
             $row_temp = $row_temp->get_down();
         }
         
-        # ===== CONEXIONES VERTICALES: ESQUINA -> PRIMER PROVEEDOR =====
+        # conexiones verticales a partir de la esquina del head
         print $fh "    // ===== CONEXIONES VERTICALES =====\n";
         $row_temp = $self->{head}->get_down();
         my $prev_row_id = "ESQUINA";
@@ -367,20 +382,20 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== CONEXIONES HORIZONTALES DENTRO DE CADA FILA =====
-        print $fh "    // ===== CONEXIONES HORIZONTALES DENTRO DE CADA FILA =====\n";
+        # las conexiones horizontales dentro de cada fila
+        print $fh "    // ===== CONEXIONES HORIZONTALES =====\n";
         $row_temp = $self->{head}->get_down();
         
         while ($row_temp) {
             my $row_id = $row_nodes{$row_temp->get_row()};
             my $data_temp = $row_temp->get_right();
             
-            # Conectar proveedor con su primer dato
+            # conectamos al proveedor con su primer dato
             if ($data_temp) {
                 my $first_data_id = $data_positions{$data_temp->get_row()}{$data_temp->get_col()};
                 print $fh "    $row_id -> $first_data_id [color=green];\n";
                 
-                # Conectar datos entre sí horizontalmente
+                # Conectar datos entre si horizontalmente
                 my $prev_data_id = $first_data_id;
                 $data_temp = $data_temp->get_right();
                 
@@ -395,15 +410,15 @@ package MatrizDispersaMedicamentos {
         }
         print $fh "\n";
         
-        # ===== CONEXIONES VERTICALES DENTRO DE CADA COLUMNA =====
-        print $fh "    // ===== CONEXIONES VERTICALES DENTRO DE CADA COLUMNA =====\n";
+        # conexiones verticales dentro de cada columna
+        print $fh "    // ===== CONEXIONES VERTICALES =====\n";
         my $col_temp2 = $self->{head}->get_right();
         
         while ($col_temp2) {
             my $col_id = $col_nodes{$col_temp2->get_col()};
             my $row_temp2 = $self->{head}->get_down();
             
-            # Conectar encabezado de columna con su primer dato
+            # conecta el encabezado con el primer dato que tiene
             my $first_data_in_col = undef;
             my $prev_data_id = undef;
             
@@ -427,7 +442,7 @@ package MatrizDispersaMedicamentos {
             $col_temp2 = $col_temp2->get_right();
         }
         
-        # ===== ETIQUETAS PARA LA MATRIZ =====
+        # etiquetas pra la matriz
         print $fh "\n    // ===== ETIQUETAS PARA LA MATRIZ =====\n";
         print $fh "    subgraph cluster_etiquetas {\n";
         print $fh "        style=invis;\n";
@@ -440,12 +455,12 @@ package MatrizDispersaMedicamentos {
         print $fh "        ETIQUETA_FILAS [label=\"PROVEEDORES\", shape=none, fontsize=16, fontcolor=green];\n";
         print $fh "    }\n";
         
-        # Posicionar etiquetas
+        # posiciones de las etiquetas
         print $fh "    \n";
-        print $fh "    // Posicionar etiqueta de columnas encima de la primera fila\n";
+        print $fh "    // posicionar etiqueta de columnas encima de la primera fila\n";
         print $fh "    ETIQUETA_COLUMNAS -> ESQUINA [style=invis];\n";
         print $fh "    \n";
-        print $fh "    // Posicionar etiqueta de filas a la izquierda de la primera columna\n";
+        print $fh "    // posicionar etiqueta de filas a la izquierda de la primera columna\n";
         print $fh "    ETIQUETA_FILAS -> ESQUINA [style=invis];\n";
         print $fh "    { rank=same; ETIQUETA_FILAS; ESQUINA; }\n";
         
@@ -454,7 +469,7 @@ package MatrizDispersaMedicamentos {
         
         say "\n✓ Archivo DOT generado: $nombre_archivo";
         
-        # Generar imagen PNG
+        # generacion de la imagen 
         my $png_file = "matriz_medicamentos.png";
         
         if (system("dot -Tpng $nombre_archivo -o $png_file 2>/dev/null") == 0) {
@@ -476,7 +491,7 @@ package MatrizDispersaMedicamentos {
     }
 }
 
-# Programa principal con menú
+# programa principal del menu
 package main;
 
 sub mostrar_menu {
@@ -485,21 +500,18 @@ sub mostrar_menu {
     print "=" x 50 . "\n";
     print "1. Agregar nuevo medicamento\n";
     print "2. Mostrar resumen de la matriz\n";
-    print "3. Generar gráfico con Graphviz\n";
+    print "3. Generar grafico con Graphviz\n";
     print "4. Salir\n";
     print "-" x 50 . "\n";
     print "Seleccione una opción: ";
 }
 
-# Crear matriz dispersa
+# creacmos la matriz
 my $matriz = MatrizDispersaMedicamentos->new();
 
-say "\n" . "*" x 60;
-say "   BIENVENIDO AL SISTEMA DE MATRIZ DISPERSA";
-say "   Filas: Proveedores | Columnas: Códigos de Medicamento";
-say "*" x 60;
 
-# Menú principal
+
+# menu principal
 my $opcion = 0;
 while ($opcion != 4) {
     mostrar_menu();
@@ -511,7 +523,7 @@ while ($opcion != 4) {
         print "AGREGAR NUEVO MEDICAMENTO\n";
         print "-" x 40 . "\n";
         
-        # Solicitar datos
+        # Ssolicitamos los datos correspondientes
         print "Proveedor: ";
         my $proveedor = <STDIN>;
         chomp $proveedor;
@@ -524,15 +536,15 @@ while ($opcion != 4) {
         my $nombre = <STDIN>;
         chomp $nombre;
         
-        print "Precio (en Quetzales): ";
+        print "Precio: ";
         my $precio_input = <STDIN>;
         chomp $precio_input;
         
-        # Validar precio
+        # validamos el precio con la expresion regular
         if ($precio_input =~ /^\d+(\.\d+)?$/) {
             my $precio = $precio_input + 0;
             
-            # Insertar en la matriz
+            # insertamos en la matriz
             $matriz->insertar_medicamento($proveedor, $codigo, $nombre, $precio);
             say "\n✓ Medicamento agregado exitosamente!";
             say "  Proveedor: $proveedor";
@@ -541,7 +553,7 @@ while ($opcion != 4) {
             say "  Precio: Q" . sprintf("%.2f", $precio);
             
         } else {
-            say "\n✗ Error: El precio debe ser un número válido (ej: 25.50)";
+            say "\n✗ Error: El precio debe ser un número válido";
         }
         
     } elsif ($opcion == 2) {
@@ -549,21 +561,22 @@ while ($opcion != 4) {
         
     } elsif ($opcion == 3) {
         print "\n" . "-" x 40 . "\n";
-        print "GENERANDO GRÁFICO CON GRAPHVIZ\n";
+        print "GENERANDO grafico CON GRAPHVIZ\n";
         print "-" x 40 . "\n";
         
         $matriz->generar_graphviz();
         
     } elsif ($opcion == 4) {
         say "\n" . "=" x 50;
-        say "¡Gracias por usar el sistema!";
+        say "sistema finalizado";
         say "=" x 50 . "\n";
         
     } else {
         say "\n✗ Opción no válida. Por favor, seleccione 1-4.";
     }
     
-    # Pausa antes de continuar
+    # pausa antes de continuar
+    
     if ($opcion != 4) {
         print "\nPresione Enter para continuar...";
         <STDIN>;
