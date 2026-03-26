@@ -12,7 +12,7 @@ package Node {
             row => $row, # guardamos el  proveedor aca
             col => $col, # guardamos el codigo del medicamento
             medicamento => $medicamento, # guardamos el nombre del medicamento 
-            precio => $precio,# uardamos el precio
+            precio => $precio,# guardamos el precio
             up => undef, #va a apuntar al nodo de arriba en la misma columna
             down => undef, #va a apuntar al nodo de abajo
             left => undef, #apunta hacia el lado izquierdo de la misma fila

@@ -268,53 +268,101 @@ sub minimo {
 sub eliminar {
     my ($self, $raiz, $asiento) = @_;
     
+     # CASO BASE: Subárbol vacío o no encontrado
     return undef unless defined $raiz;
-    
+
+    # PASO 1: Buscar el nodo a eliminar
+     # Si el valor es menor, buscar en subárbol izquierdo
     if ($asiento < $raiz->{asiento}) {
+        # Si el valor es menor, buscar en subárbol izquierdo
+        
         $raiz->{izquierdo} = $self->eliminar($raiz->{izquierdo}, $asiento);
+        # Llamada recursiva y actualiza referencia al hijo izquierdo
     } elsif ($asiento > $raiz->{asiento}) {
+         # Si el valor es mayor, buscar en subárbol derecho
         $raiz->{derecho} = $self->eliminar($raiz->{derecho}, $asiento);
+        # Llamada recursiva y actualiza referencia al hijo derecho
     } else {
+
+        # NODO ENCONTRADO - proceder a eliminar según los casos
+        
+        # CASO 1: Nodo con un solo hijo o ningún hijo
         if (!defined $raiz->{izquierdo} || !defined $raiz->{derecho}) {
+            # Si falta al menos un hijo
             my $temp = $raiz->{izquierdo} // $raiz->{derecho};
+            # Obtiene el hijo existente si es que hay alguno
             return $temp unless defined $temp;
+
+ # Si hay un hijo, lo devuelve reemplazando al nodo actual
+
             return undef;
+
+             # Si no hay hijos, devuelve undef eliminando el nodo
         } else {
+
+            # CASO 2: Nodo con dos hijos
             my $temp = $self->minimo($raiz->{derecho});
+
+             # Encuentra el mínimo del subárbol derecho osea el sucesor en inorden
+
+              # Copiar datos del sucesor al nodo actual
             $raiz->{asiento} = $temp->{asiento};
             $raiz->{nombre} = $temp->{nombre};
             $raiz->{genero} = $temp->{genero};
+
+             # Eliminar el sucesor que tiene 0 o 1 hijo
             $raiz->{derecho} = $self->eliminar($raiz->{derecho}, $temp->{asiento});
         }
     }
-    
+      # Si el nodo no existe después de la eliminación
     return undef unless defined $raiz;
-    
+    # Verificación de seguridad
+
+
+    # PASO 2: Actualizar altura
     $self->actualizar_altura($raiz);
+      # Recalcula altura después de la eliminación
     
+
+     # PASO 3: Verificar balance
     my $balance = $self->balance($raiz);
+
+    # Obtiene factor de balance
+    
+    # PASO 4: Aplicar rotaciones si es necesario
+    # Similar a inserción pero verificando balances de hijos
     
     # Rotaciones
+
+     # CASO 1: Desbalanceo izquierda-izquierda
     if ($balance > 1 && $self->balance($raiz->{izquierdo}) >= 0) {
         return $self->rotar_derecha($raiz);
     }
+
+    # CASO 2: Desbalanceo izquierda-derecha
     if ($balance > 1 && $self->balance($raiz->{izquierdo}) < 0) {
         $raiz->{izquierdo} = $self->rotar_izquierda($raiz->{izquierdo});
         return $self->rotar_derecha($raiz);
     }
+
+    # CASO 3: Desbalanceo derecha-derecha
     if ($balance < -1 && $self->balance($raiz->{derecho}) <= 0) {
         return $self->rotar_izquierda($raiz);
     }
+
+    # CASO 4: Desbalanceo derecha-izquierda
     if ($balance < -1 && $self->balance($raiz->{derecho}) > 0) {
         $raiz->{derecho} = $self->rotar_derecha($raiz->{derecho});
         return $self->rotar_izquierda($raiz);
     }
-    
+    # Devuelve el nodo
     return $raiz;
 }
 
 # Recorrido inorden
 sub inorden {
+
+    # Recorrido inorden: izquierdo - raíz - derecho
     my ($self, $raiz, $resultados) = @_;
     return unless defined $raiz;
     $self->inorden($raiz->{izquierdo}, $resultados);
@@ -324,6 +372,7 @@ sub inorden {
 
 # Recorrido preorden
 sub preorden {
+     # Recorrido preorden: raíz - izquierdo - derecho
     my ($self, $raiz, $resultados) = @_;
     return unless defined $raiz;
     push @$resultados, [$raiz->{asiento}, $raiz->{nombre}, $raiz->{genero}];
@@ -333,6 +382,8 @@ sub preorden {
 
 # Recorrido postorden
 sub postorden {
+    # Recorrido postorden: izquierdo - derecho - raíz
+    # Resultado: útil para eliminar el árbol (hojas primero)
     my ($self, $raiz, $resultados) = @_;
     return unless defined $raiz;
     $self->postorden($raiz->{izquierdo}, $resultados);
@@ -342,23 +393,50 @@ sub postorden {
 
 # Generar archivo DOT para Graphviz
 sub generar_dot {
+
+    # Genera el código DOT para Graphvi
     my ($self, $raiz, $dot, $contador) = @_;
+
+        # $dot: referencia al string que acumula el código DOT
+    # $contador: referencia a un array con un número que sirve como ID unico
     return unless defined $raiz;
+     # Si no hay nodo, termina
     
     my $id = $contador->[0]++;
+
+    # Asigna un ID único a este nodo y luego incrementa el contador
+    # Los IDs son números secuenciales 0, 1 2 3 
     my $label = "Asiento: $raiz->{asiento}\\nNombre: $raiz->{nombre}\\nGénero: $raiz->{genero}";
+    # Crea la etiqueta del nodo con los 3 datos
+    # \\n es un salto de línea
+    
     $$dot .= "    node$id [label=\"$label\"];\n";
+
+      # Agrega la definición del nodo al código DOT
+    # .$ = concatenación
+    # $$dot accede al valor de la referencia en el string
     
     if (defined $raiz->{izquierdo}) {
+
+          # Si tiene hijo izquierdo
         my $hijo_id = $contador->[0];
+
+         # El ID del hijo será el siguiente número 
         $self->generar_dot($raiz->{izquierdo}, $dot, $contador);
+
+         # Llamada recursiva para generar el hijo izquierdo
         $$dot .= "    node$id -> node$hijo_id ;\n";
+         # Agrega una arista del nodo actual a su hijo izquierdo
     }
     
     if (defined $raiz->{derecho}) {
+        # Si tiene hijo derecho
         my $hijo_id = $contador->[0];
+         # El ID del hijo será el siguiente número
         $self->generar_dot($raiz->{derecho}, $dot, $contador);
+         # Llamada recursiva para generar el hijo derecho
         $$dot .= "    node$id -> node$hijo_id ;\n";
+        
     }
 }
 
@@ -453,16 +531,16 @@ $box_botones->pack_start($boton_eliminar, 0, 0, 5);
 my $boton_cargar = Gtk3::Button->new_with_label('Cargar Datos');
 $boton_cargar->signal_connect('clicked' => sub {
     my @datos_ejemplo = (
-        [1, 'Juan Pérez', 'Masculino'],
-        [2, 'María García', 'Femenino'],
-        [3, 'Carlos López', 'Masculino'],
-        [4, 'Ana Martínez', 'Femenino'],
-        [5, 'Luis Rodríguez', 'Masculino'],
-        [6, 'Laura Sánchez', 'Femenino'],
-        [7, 'Pedro Gómez', 'Masculino'],
-        [8, 'Sofia Torres', 'Femenino'],
-        [9, 'Diego Castro', 'Masculino'],
-        [10, 'Valentina Ruiz', 'Femenino']
+        [1, "Jens Pablo", "Masculino"],
+        [2, "Esdras Mazat", "Masculino"],
+        [3, "Lesly Rubio", "Femenino"],
+        [4, "Eduardo Zamora", "Masculino"],
+        [5, "Sherly Pascual", "Femenino"],
+        [6, 'Gueslim Fernandez', 'masculino'],
+        [7, "Maria Flores", "Femenino"],
+        [8, "Allan Cardona", "Masculino"],
+        [9, 'Alejandro Giron', 'masculino'],
+        [10, 'Mariana Sulecio', 'Femenino']
     );
     
     foreach my $dato (@datos_ejemplo) {
